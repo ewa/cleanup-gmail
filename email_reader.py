@@ -10,11 +10,21 @@ import base64
 import email
 from bs4 import BeautifulSoup
 import logging
+import time
+import sys
+
+### USER CONFIGURATION ###
+REALLY_DO_IT=False
+SEARCH_STRING='older:1/7/2023 -label:IMPORTANT is:unread -is:starred'
 
 # Define the SCOPES. If modifying it, delete the token.pickle file.
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly',
           'https://www.googleapis.com/auth/gmail.modify']
 SECRETS_FILE='client_secret.json'
+
+
+
+
 
 #logging.basicConfig(level=logging.DEBUG)
 logging.getLogger('googleapiclient').setLevel(logging.INFO)
@@ -35,8 +45,6 @@ console_output.setLevel(logging.INFO)
 logger.addHandler(record_everything)
 logger.addHandler(console_output)
 
-
-REALLY_DO_IT=False
 def getEmails():
         # Variable creds will store the user access token.
         # If no valid token found, we will create one.
@@ -78,47 +86,48 @@ def getEmails():
         # request a list of all the messages
         last_page_p = False
         pageToken=None
-        logger.info('Starting new run')
+
+        if REALLY_DO_IT:
+            sys.stderr.write("REALLY_DO_IT is set.\nIf you don't trust this script to make bulk changes to your e-mails, hit CTL-C immediately!")
+            sys.stderr.flush()
+            time.sleep(10)
+            sys.stderr.write(" Proceeding.\n")
+            sys.stderr.flush()
+        else:
+            sys.stderr.write("REALLY_DO_IT is NOT set.  This run is for testing purposes only and will not actually make any changes.\n")
+
+        logger.info('Running with search string \'{}\''.format(SEARCH_STRING))
+        logger.debug('Starting new run with REALLY_DO_IT={}'.format(REALLY_DO_IT))
+        
         while not last_page_p:
             result = service.users().messages().list(userId='me',
                                                      maxResults=500,
                                                      pageToken=pageToken,
-                                                     q='older:1/1/2023 -label:IMPORTANT is:unread -is:starred',
+                                                     q=SEARCH_STRING,
                                                      ).execute()
+            #logger.debug("Result: '{}'".format(result))
             try:
                 pageToken=result['nextPageToken']
             except KeyError:
                 pageToken=None
                 last_page_p=True
-                
+
+            if result['resultSizeEstimate']==0:
+                logger.info('No messages matching search string found (at least on this page)!')
+                break
+            
             batch_ct = batch_ct + 1
             logger.info('Message list: {} messages, next page token {}'.format(len(result['messages']), pageToken))
-        
-        
-            # We can also pass maxResults to get any number of emails. Like this:
-            # result = service.users().messages().list(maxResults=200, userId='me').execute()
             messages = result.get('messages')
-            # messages is a list of dictionaries where each dictionary contains a message id.
-
-
-            to_mark_read=[]
-            # iterate through all the messages
         
+            to_mark_read=[]
+           
             for msg in messages:
                 # Get the message from its id
                 to_mark_read.append(msg['id'])
                 msg_ct = msg_ct+1
                 continue
-                msg_info = service.users().messages().get(userId='me', id=msg['id'], format='metadata').execute()
-                try:
-                    headers = msg_info['payload']['headers']
-                    #logger.debug("Msg {} headers: {}".format(msg['id'], headers))
-                    subject = next((h['value'] for h in headers if h['name']=='Subject'), None)
-                    labelIds = msg_info['labelIds']
-                    logger.debug("Msg {} subject {}, labels {}".format(msg['id'], subject, labelIds))
-                except Exception as e: 
-                    raise (e)
-                
+        
             if REALLY_DO_IT:
                 logger.debug("DOING mark as read: {}".format(to_mark_read))
                 try:
@@ -135,6 +144,6 @@ def getEmails():
             else:
                 logger.debug("WOULD mark as read: {}".format(to_mark_read))
     
-        logger.info("Done")        
+        logger.info("Done: {} batches, with a total of {} messages".format(batch_ct, msg_ct))
 
 getEmails()

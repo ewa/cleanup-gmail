@@ -1,0 +1,9 @@
+# swap files
+*~
+
+# secrets and caches
+client_secret.json
+token.pickle
+
+# logs
+message_details.log
