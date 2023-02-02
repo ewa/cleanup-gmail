@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # import the required libraries
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -10,6 +12,7 @@ from bs4 import BeautifulSoup
 
 # Define the SCOPES. If modifying it, delete the token.pickle file.
 SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
+SECRETS_FILE='client_secret_438265393119-luatik9eehv5tdumoqjpt7pu8hi9d9a7.apps.googleusercontent.com.json'
 
 def getEmails():
 	# Variable creds will store the user access token.
@@ -29,7 +32,7 @@ def getEmails():
 		if creds and creds.expired and creds.refresh_token:
 			creds.refresh(Request())
 		else:
-			flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
+			flow = InstalledAppFlow.from_client_secrets_file(SECRETS_FILE, SCOPES)
 			creds = flow.run_local_server(port=0)
 
 		# Save the access token in token.pickle file for the next run
