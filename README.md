@@ -1,6 +1,8 @@
 # cleanup-gmail
 Python script to mark certain older messages as read in gmail.  SEE [WARNING](README#Warning) BELOW.
 
+Note that this is supposedly possible within the normal web user interface, though that functionality seems to be borked as of when I'm writing this.
+
 ## Credit
 This is modified from [Devansh07](https://auth.geeksforgeeks.org/user/devansh07)'s GeeksforGeeks article
 [How to read Emails from Gmail using Gmail API in Python](https://www.geeksforgeeks.org/how-to-read-emails-from-gmail-using-gmail-api-in-python/).
