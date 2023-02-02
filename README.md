@@ -1,5 +1,5 @@
 # cleanup-gmail
-Python script to mark certain older messages as read in gmail
+Python script to mark certain older messages as read in gmail.  SEE [WARNING](README#Warning) BELOW.
 
 ## Credit
 This is modified from [Devansh07](https://auth.geeksforgeeks.org/user/devansh07)'s GeeksforGeeks article
